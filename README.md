@@ -1,4 +1,4 @@
-# 2Do Parcial
+# 2° Parcial
 
 ## Diseño de la base de datos
 ![parcialWA](https://github.com/user-attachments/assets/52e4f707-62c4-4f17-ba40-bf92227e743a)
