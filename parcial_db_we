@@ -1,0 +1,124 @@
+-- Migrations will appear here as you chat with AI
+
+create table clientes (
+  id bigint primary key generated always as identity,
+  numero_identificacion text not null,
+  email text not null,
+  contacto text not null,
+  nombre text not null,
+  tipo_cliente text check (tipo_cliente in ('juridico', 'natural')) not null,
+  categoria text check (
+    categoria in (
+      'centro comercial',
+      'restaurante',
+      'conjuntos residenciales'
+    )
+  ) not null
+);
+
+create table direcciones (
+  id bigint primary key generated always as identity,
+  name text not null,
+  id_cliente bigint not null,
+  foreign key (id_cliente) references clientes (id)
+);
+
+create table solicitudes_recoleccion (
+  id bigint primary key generated always as identity,
+  id_cliente bigint not null,
+  id_direccion bigint not null,
+  fecha_programada timestamp with time zone not null,
+  numero_pinpinas int not null,
+  detalles_adicionales text,
+  estado_solicitud text check (
+    estado_solicitud in (
+      'pendiente',
+      'asignada',
+      'en_proceso',
+      'completada',
+      'cancelada'
+    )
+  ) not null,
+  id_ruta bigint,
+  foreign key (id_cliente) references clientes (id),
+  foreign key (id_direccion) references direcciones (id)
+);
+
+alter table solicitudes_recoleccion
+alter column id_ruta
+set not null;
+
+create table ruta (
+  id bigint primary key generated always as identity,
+  estado text check (
+    estado in (
+      'pendiente',
+      'en progreso',
+      'completada',
+      'cancelada'
+    )
+  ) not null
+);
+
+alter table ruta
+add column id_vehiculo bigint not null,
+add column id_conductor bigint not null;
+
+alter table solicitudes_recoleccion
+add constraint fk_ruta foreign key (id_ruta) references ruta (id);
+
+create table conductores (
+  id bigint primary key generated always as identity,
+  nombre text not null,
+  licencia text not null,
+  fecha_vigencia_licencia date not null,
+  cedula text not null
+);
+
+create table vehiculos (
+  id bigint primary key generated always as identity,
+  placa text not null,
+  marca text not null,
+  modelo text not null,
+  ano int not null,
+  estado text check (estado in ('disponible', 'mantenimiento')) not null,
+  licencia_transito text not null,
+  tecnomecanica text not null,
+  soat text not null
+);
+
+alter table ruta
+add constraint fk_conductor foreign key (id_conductor) references conductores (id);
+
+alter table ruta
+add constraint fk_vehiculo foreign key (id_vehiculo) references vehiculos (id);
+
+create table mantenimientos_vehiculos (
+  id bigint primary key generated always as identity,
+  id_vehiculo bigint not null,
+  tipo_mantenimiento text,
+  fecha date,
+  costo numeric(10, 2),
+  comentarios text,
+  foreign key (id_vehiculo) references vehiculos (id) on delete cascade
+);
+
+alter table mantenimientos_vehiculos
+add column estado text check (estado in ('proceso', 'terminado', 'cancelado')) not null;
+
+
+ALTER TABLE vehiculos 
+ALTER COLUMN licencia_transito TYPE date 
+USING licencia_transito::date;
+
+ALTER TABLE vehiculos 
+ALTER COLUMN tecnomecanica TYPE date 
+USING tecnomecanica::date;
+
+ALTER TABLE vehiculos 
+ALTER COLUMN soat TYPE date 
+USING soat::date;
+
+ALTER TABLE vehiculos
+ADD COLUMN tipo_vehiculo text CHECK (tipo_vehiculo = 'furgon') DEFAULT 'furgon',
+ADD COLUMN capacidad_carga numeric(10, 2) NOT NULL; -- Capacidad en toneladas o en la unidad de medida deseada
